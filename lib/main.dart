@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+	const MyApp({super.key});
 
 	@override
 	Widget build(BuildContext context) {
@@ -30,15 +30,13 @@ class MyApp extends StatelessWidget {
 }
 
 class QrCodeContactPage extends StatefulWidget {
-  const QrCodeContactPage({super.key});
+	const QrCodeContactPage({super.key});
 
 	@override
 	_QrCodeContactPageState createState() => _QrCodeContactPageState();
 }
 
 class _QrCodeContactPageState extends State<QrCodeContactPage> {
-	_QrCodeContactPageState() {
-	}
 	final _formKey = GlobalKey<FormState>();
 	String _name = "";
 	String _phone = "";
@@ -46,6 +44,12 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 	String _description = "";
 	String _email = "";
 	String _url = "";
+	final TextEditingController _nameControl = TextEditingController();
+	final TextEditingController _phoneControl = TextEditingController();
+	final TextEditingController _emailControl = TextEditingController();
+	final TextEditingController _locationControl = TextEditingController();
+	final TextEditingController _descriptionControl = TextEditingController();
+	final TextEditingController _urlControl = TextEditingController();
 	final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
 	saveState() {
@@ -66,20 +70,57 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 	@override
 	void initState() {
 		super.initState();
+
+		setStartingState();
 	}
 
 	setStartingState() async {
 		final SharedPreferences prefs = await _prefs;
 		_name = prefs.getString("name") ?? "";
+		_nameControl.text = _name;
+		_phone = prefs.getString("phone") ?? "";
+		_phoneControl.text = _phone;
+		_email = prefs.getString("email") ?? "";
+		_emailControl.text = _email;
+		_location = prefs.getString("location") ?? "";
+		_locationControl.text = _location;
+		_description = prefs.getString("description") ?? "";
+		_descriptionControl.text = _description;
+		_url = prefs.getString("url") ?? "";
+		_urlControl.text = _url;
 		print("read from disk");
 		saveState();
 	}
 
 	Future<void> saveName() async {
-		final SharedPreferences prefs = await _prefs;
+		_prefs.then((prefs) => prefs.setString("name", _name));
+		print("saved name to disk");
+	}
 
-		prefs.setString("name", _name);
-		print("saved to disk");
+	Future<void> savePhone() async {
+		_prefs.then((prefs) => prefs.setString("phone", _phone));
+	}
+
+	Future<void> saveEmail() async {
+		_prefs.then((prefs) => prefs.setString("email", _email));
+	}
+
+	Future<void> saveLocation() async {
+		_prefs.then((prefs) => prefs.setString("location", _location));
+	}
+
+	Future<void> saveDescription() async {
+		_prefs.then((prefs) => prefs.setString("description", _description));
+	}
+
+	Future<void> saveUrl() async {
+		_prefs.then((prefs) => prefs.setString("url", _url));
+	}
+
+	saveVarFocus(bool isFocusedNow, Function f) {
+		if (!isFocusedNow) {
+			f();
+		}
 	}
 
 	@override
@@ -117,51 +158,80 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 										padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
 										child: Column(
 											children: [
-												TextFormField(
-													decoration: const InputDecoration(
-														labelText: 'Name',
-														suffixIcon: Icon(Icons.person),
-														labelStyle: TextStyle(fontSize: 20),
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, saveName),
+													child: TextFormField(
+														onChanged: (value) => {_name = value, saveState()},
+														controller: _nameControl,
+														decoration: const InputDecoration(
+															labelText: 'Name',
+															suffixIcon: Icon(Icons.person),
+															labelStyle: TextStyle(fontSize: 20),
+														),
 													),
-													onChanged: (value) => {_name = value, saveState()},
-													onEditingComplete: saveName,
 												),
-												TextFormField(
-													decoration: const InputDecoration(
-															labelText: 'Phone',
-															isDense: true,
-															suffixIcon: Icon(Icons.phone)),
-													onChanged: (value) => {_phone = value, saveState()},
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, savePhone),
+													child: TextFormField(
+														decoration: const InputDecoration(
+																labelText: 'Phone',
+																isDense: true,
+																suffixIcon: Icon(Icons.phone)),
+														controller: _phoneControl,
+														onChanged: (value) => {_phone = value, saveState()},
+													),
 												),
-												TextFormField(
-													decoration: const InputDecoration(
-															labelText: 'Email',
-															isDense: true,
-															suffixIcon: Icon(Icons.email)),
-													onChanged: (value) => {_email = value, saveState()},
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, saveEmail),
+													child: TextFormField(
+														decoration: const InputDecoration(
+																labelText: 'Email',
+																isDense: true,
+																suffixIcon: Icon(Icons.email)),
+														controller: _emailControl,
+														onChanged: (value) => {_email = value, saveState()},
+													),
 												),
-												TextFormField(
-													decoration: const InputDecoration(
-															labelText: 'Location',
-															isDense: true,
-															suffixIcon: Icon(Icons.location_pin)),
-													onChanged: (value) =>
-															{_location = value, saveState()},
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, saveLocation),
+													child: TextFormField(
+														decoration: const InputDecoration(
+																labelText: 'Location',
+																isDense: true,
+																suffixIcon: Icon(Icons.location_pin)),
+														controller: _locationControl,
+														onChanged: (value) =>
+																{_location = value, saveState()},
+													),
 												),
-												TextFormField(
-													decoration: const InputDecoration(
-															labelText: 'Description',
-															isDense: true,
-															suffixIcon: Icon(Icons.note)),
-													onChanged: (value) =>
-															{_description = value, saveState()},
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, saveDescription),
+													child: TextFormField(
+														decoration: const InputDecoration(
+																labelText: 'Description',
+																isDense: true,
+																suffixIcon: Icon(Icons.note)),
+														controller: _descriptionControl,
+														onChanged: (value) =>
+																{_description = value, saveState()},
+													),
 												),
-												TextFormField(
-													decoration: const InputDecoration(
-															labelText: 'Website',
-															isDense: true,
-															suffixIcon: Icon(Icons.web)),
-													onChanged: (value) => {_url = value, saveState()},
+												Focus(
+													onFocusChange: (focus) =>
+															saveVarFocus(focus, saveUrl),
+													child: TextFormField(
+														decoration: const InputDecoration(
+																labelText: 'Website',
+																isDense: true,
+																suffixIcon: Icon(Icons.web)),
+														controller: _urlControl,
+														onChanged: (value) => {_url = value, saveState()},
+													),
 												),
 											],
 										),
