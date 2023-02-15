@@ -1,17 +1,17 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
 	@override
 	Widget build(BuildContext context) {
 		return MaterialApp(
 			title: 'QR Code Contact',
-			home: QrCodeContactPage(),
+			home: const QrCodeContactPage(),
 			theme: ThemeData(
 				brightness: Brightness.light,
 				/* light theme settings */
@@ -30,11 +30,15 @@ class MyApp extends StatelessWidget {
 }
 
 class QrCodeContactPage extends StatefulWidget {
+  const QrCodeContactPage({super.key});
+
 	@override
 	_QrCodeContactPageState createState() => _QrCodeContactPageState();
 }
 
 class _QrCodeContactPageState extends State<QrCodeContactPage> {
+	_QrCodeContactPageState() {
+	}
 	final _formKey = GlobalKey<FormState>();
 	String _name = "";
 	String _phone = "";
@@ -42,6 +46,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 	String _description = "";
 	String _email = "";
 	String _url = "";
+	final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
 	saveState() {
 		setState(() {});
@@ -56,6 +61,25 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		}
 		int nameParts = _name.indexOf(" ");
 		return "${_name.substring(nameParts + 1)},${_name.substring(0, nameParts)}";
+	}
+
+	@override
+	void initState() {
+		super.initState();
+	}
+
+	setStartingState() async {
+		final SharedPreferences prefs = await _prefs;
+		_name = prefs.getString("name") ?? "";
+		print("read from disk");
+		saveState();
+	}
+
+	Future<void> saveName() async {
+		final SharedPreferences prefs = await _prefs;
+
+		prefs.setString("name", _name);
+		print("saved to disk");
 	}
 
 	@override
@@ -100,6 +124,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 														labelStyle: TextStyle(fontSize: 20),
 													),
 													onChanged: (value) => {_name = value, saveState()},
+													onEditingComplete: saveName,
 												),
 												TextFormField(
 													decoration: const InputDecoration(
