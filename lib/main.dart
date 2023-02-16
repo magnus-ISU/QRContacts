@@ -203,9 +203,9 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		}
 
 // Request contact permission
-		if (Platform.isAndroid || Platform.isIOS) {
+		if (Platform.isAndroid | Platform.isIOS) {
 			if (await Permission.contacts.request().isGranted) {
-				if (await FlutterContacts.requestPermission()) {
+				if (await FlutterContacts.requestPermission(readonly: true)) {
 					List<Contact> contacts = await FlutterContacts.getContacts(
 							withProperties: true, withPhoto: false);
 
