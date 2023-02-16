@@ -84,20 +84,14 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 	setStartingState() async {
 		final SharedPreferences prefs = await _prefs;
 		_name = prefs.getString("name") ?? "";
-		_nameControl.text = _name;
 		_phone = prefs.getString("phone") ?? "";
-		_phoneControl.text = _phone;
 		_email = prefs.getString("email") ?? "";
-		_emailControl.text = _email;
 		_location = prefs.getString("location") ?? "";
-		_locationControl.text = _location;
 		_description = prefs.getString("description") ?? "";
-		_descriptionControl.text = _description;
 		_url = prefs.getString("url") ?? "";
-		_urlControl.text = _url;
 
 		// _urlControl.text = _url;
-		saveState();
+		updateTexts();
 	}
 
 	Future<void> saveName() async {
@@ -165,13 +159,16 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		_description = prefs.getString("contact_${name}_description") ?? "";
 		_url = prefs.getString("contact_${name}_url") ?? "";
 
+		updateTexts();
+	}
+
+	updateTexts() {
 		_nameControl.text = _name;
 		_phoneControl.text = _phone;
 		_emailControl.text = _email;
 		_locationControl.text = _location;
 		_descriptionControl.text = _description;
 		_urlControl.text = _url;
-
 		saveState();
 	}
 
@@ -217,10 +214,19 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 									padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
 									child: ElevatedButton(
 										onPressed: () {
-											print("${c.displayName} ${c.name} ${c.phones[0]}");
+											_name = "${c.name.last},${c.name.first}";
+											_phone = c.phones.isEmpty
+													? ""
+													: c.phones.first.normalizedNumber;
+											_email =
+													c.emails.isEmpty ? "" : c.emails.first.toString();
+											_location =
+													c.addresses.isEmpty ? "" : c.addresses.first.address;
+											_description = c.notes.isEmpty ? "" : c.notes.first.note;
+											_url = c.websites.isEmpty ? "" : c.websites.first.url;
+											updateTexts();
 										},
-										child: Text(
-												"${c.displayName} ${c.name} ${c.phones.isNotEmpty ? c.phones[0] : "No phone"}"),
+										child: Text(c.displayName),
 									),
 								),
 							);
