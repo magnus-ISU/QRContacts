@@ -187,14 +187,12 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 
 		for (String name in _contactNames) {
 			list.add(
-				Padding(
-					padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-					child: ElevatedButton(
-						onPressed: () {
-							loadOldContact(name);
-						},
-						child: Text(name),
-					),
+				ElevatedButton(
+					onPressed: () {
+						loadOldContact(name);
+					},
+					child: Row(
+							children: [Text(name), const Spacer(), const Icon(Icons.edit)]),
 				),
 			);
 		}
@@ -206,28 +204,55 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 					List<Contact> contacts = await FlutterContacts.getContacts(
 							withProperties: true, withPhoto: false);
 
+					List<Contact> starContacts =
+							contacts.where((c) => c.isStarred).toList();
+					if (starContacts.isNotEmpty) {
+						list.add(const Padding(padding: EdgeInsets.all(12)));
+						for (Contact c in starContacts) {
+							list.add(
+								ElevatedButton(
+									onPressed: () {
+										_name = "${c.name.last},${c.name.first}";
+										_phone =
+												c.phones.isEmpty ? "" : c.phones.first.normalizedNumber;
+										_email = c.emails.isEmpty ? "" : c.emails.first.address;
+										_location =
+												c.addresses.isEmpty ? "" : c.addresses.first.address;
+										_description = c.notes.isEmpty ? "" : c.notes.first.note;
+										_url = c.websites.isEmpty ? "" : c.websites.first.url;
+										updateTexts();
+									},
+									child: Row(children: [
+										Text(c.displayName),
+										const Spacer(),
+										const Icon(Icons.star)
+									]),
+								),
+							);
+						}
+					}
+
 					if (contacts.isNotEmpty) {
-						list.add(const Padding(padding: EdgeInsets.all(20)));
+						list.add(const Padding(padding: EdgeInsets.all(12)));
 						for (Contact c in contacts) {
 							list.add(
-								Padding(
-									padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-									child: ElevatedButton(
-										onPressed: () {
-											_name = "${c.name.last},${c.name.first}";
-											_phone = c.phones.isEmpty
-													? ""
-													: c.phones.first.normalizedNumber;
-											_email =
-													c.emails.isEmpty ? "" : c.emails.first.toString();
-											_location =
-													c.addresses.isEmpty ? "" : c.addresses.first.address;
-											_description = c.notes.isEmpty ? "" : c.notes.first.note;
-											_url = c.websites.isEmpty ? "" : c.websites.first.url;
-											updateTexts();
-										},
-										child: Text(c.displayName),
-									),
+								ElevatedButton(
+									onPressed: () {
+										_name = "${c.name.last},${c.name.first}";
+										_phone =
+												c.phones.isEmpty ? "" : c.phones.first.normalizedNumber;
+										_email = c.emails.isEmpty ? "" : c.emails.first.address;
+										_location =
+												c.addresses.isEmpty ? "" : c.addresses.first.address;
+										_description = c.notes.isEmpty ? "" : c.notes.first.note;
+										_url = c.websites.isEmpty ? "" : c.websites.first.url;
+										updateTexts();
+									},
+									child: Row(children: [
+										Text(c.displayName),
+										const Spacer(),
+										const Icon(Icons.person)
+									]),
 								),
 							);
 						}
@@ -271,26 +296,29 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 								saveNewContact(_contactName);
 							},
 							child: Text(_contactName.isEmpty
-									? "Enter a name below to save a contact"
+									? "Enter a name below to save a custom contact"
 									: "Save $_contactName"),
 						),
 						TextFormField(
 							decoration: const InputDecoration(
-									labelText: 'New Contact Name',
+									labelText: 'Contact Name',
 									isDense: true,
 									suffixIcon: Icon(Icons.contacts)),
 							onChanged: (value) => {_contactName = value, saveState()},
 						),
-						FutureBuilder(
-							builder: (context, snapshot) {
-								return Column(
-									children: snapshot.data ?? <Widget>[],
-								);
-							},
-							future: getContactList(),
+						Padding(
+							padding: const EdgeInsets.fromLTRB(10, 12, 10, 0),
+							child: FutureBuilder(
+								builder: (context, snapshot) {
+									return Column(
+										children: snapshot.data ?? <Widget>[],
+									);
+								},
+								future: getContactList(),
+							),
 						),
 						const Padding(
-							padding: EdgeInsets.all(20),
+							padding: EdgeInsets.all(12),
 						),
 						ElevatedButton(
 							style: TextButton.styleFrom(backgroundColor: Colors.red),
@@ -304,8 +332,8 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 								deleteNewContact(_contactName);
 							},
 							child: Text(_contactName.isEmpty
-									? "Enter a name below to remove a contact"
-									: "Delete $_contactName"),
+									? "Enter a name below to remove a custom contact"
+									: "Remove custom contact $_contactName"),
 						),
 					],
 				),
