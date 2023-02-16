@@ -44,6 +44,8 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 	String _description = "";
 	String _email = "";
 	String _url = "";
+	String _contactName = "";
+	List<String> _contactNames = [];
 	final TextEditingController _nameControl = TextEditingController();
 	final TextEditingController _phoneControl = TextEditingController();
 	final TextEditingController _emailControl = TextEditingController();
@@ -88,13 +90,13 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		_descriptionControl.text = _description;
 		_url = prefs.getString("url") ?? "";
 		_urlControl.text = _url;
-		print("read from disk");
+
+		// _urlControl.text = _url;
 		saveState();
 	}
 
 	Future<void> saveName() async {
 		_prefs.then((prefs) => prefs.setString("name", _name));
-		print("saved name to disk");
 	}
 
 	Future<void> savePhone() async {
@@ -117,17 +119,152 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		_prefs.then((prefs) => prefs.setString("url", _url));
 	}
 
+	Future<void> saveNewContact(String name) async {
+		var prefs = await _prefs;
+		prefs.setString("contact_${name}_name", _name);
+		prefs.setString("contact_${name}_phone", _phone);
+		prefs.setString("contact_${name}_email", _email);
+		prefs.setString("contact_${name}_location", _location);
+		prefs.setString("contact_${name}_description", _description);
+		prefs.setString("contact_${name}_url", _url);
+
+		if (!_contactNames.contains(name)) {
+			_contactNames.add(name);
+			prefs.setStringList("contacts", _contactNames);
+		}
+
+		saveState();
+	}
+
+	Future<void> deleteNewContact(String name) async {
+		var prefs = await _prefs;
+		prefs.remove("contact_${name}_name");
+		prefs.remove("contact_${name}_phone");
+		prefs.remove("contact_${name}_email");
+		prefs.remove("contact_${name}_location");
+		prefs.remove("contact_${name}_description");
+		prefs.remove("contact_${name}_url");
+
+		_contactNames.remove(name);
+		prefs.setStringList("contacts", _contactNames);
+
+		saveState();
+	}
+
+	loadOldContact(String name) async {
+		final SharedPreferences prefs = await _prefs;
+		_name = prefs.getString("contact_${name}_name") ?? "";
+		_phone = prefs.getString("contact_${name}_phone") ?? "";
+		_email = prefs.getString("contact_${name}_email") ?? "";
+		_location = prefs.getString("contact_${name}_location") ?? "";
+		_description = prefs.getString("contact_${name}_description") ?? "";
+		_url = prefs.getString("contact_${name}_url") ?? "";
+
+		_nameControl.text = _name;
+		_phoneControl.text = _phone;
+		_emailControl.text = _email;
+		_locationControl.text = _location;
+		_descriptionControl.text = _description;
+		_urlControl.text = _url;
+
+		saveState();
+	}
+
 	saveVarFocus(bool isFocusedNow, Function f) {
 		if (!isFocusedNow) {
 			f();
 		}
 	}
 
+	Future<List<Widget>> getContactList() async {
+		List<Widget> list = [];
+		final SharedPreferences prefs = await _prefs;
+		_contactNames = prefs.getStringList("contacts") ?? [];
+
+		for (String name in _contactNames) {
+			list.add(
+				Padding(
+					padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+					child: ElevatedButton(
+						onPressed: () {
+							loadOldContact(name);
+						},
+						child: Text(name),
+					),
+				),
+			);
+		}
+		return list;
+	}
+
 	@override
 	Widget build(BuildContext context) {
 		return Scaffold(
 			appBar: AppBar(
-				title: const Text('Create Contact QR Code'),
+				title: const Text('QR Contacts'),
+			),
+			drawer: Drawer(
+				child: ListView(
+					children: [
+						const DrawerHeader(
+							decoration: BoxDecoration(
+								color: Colors.blue,
+							),
+							child: Text(
+								'QR Contacts',
+								style: TextStyle(
+									color: Colors.white,
+									fontSize: 32,
+								),
+							),
+						),
+						ElevatedButton(
+							onPressed: () {
+								if (_contactName.isEmpty) {
+									ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+										content: Text("Enter a contact name!"),
+									));
+									return;
+								}
+								saveNewContact(_contactName);
+							},
+							child: Text(_contactName.isEmpty
+									? "Enter a name below to save a contact"
+									: "Save $_contactName"),
+						),
+						TextFormField(
+							decoration: const InputDecoration(
+									labelText: 'New Contact Name',
+									isDense: true,
+									suffixIcon: Icon(Icons.contacts)),
+							onChanged: (value) => {_contactName = value, saveState()},
+						),
+								FutureBuilder(
+							builder: (context, snapshot) {
+								return Column(
+									children: snapshot.data ?? <Widget>[],
+								);
+							},
+							future: getContactList(),
+						),
+						const Padding(padding: EdgeInsets.all(20),),
+						ElevatedButton(
+							style: TextButton.styleFrom(backgroundColor: Colors.red),
+							onPressed: () {
+								if (_contactName.isEmpty) {
+									ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+										content: Text("Enter a contact name!"),
+									));
+									return;
+								}
+								deleteNewContact(_contactName);
+							},
+							child: Text(_contactName.isEmpty
+									? "Enter a name below to remove a contact"
+									: "Delete $_contactName"),
+						),
+					],
+				),
 			),
 			body: Form(
 				key: _formKey,
@@ -141,7 +278,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 									widthFactor: 1,
 									heightFactor: 1,
 									child: QrImage(
-										padding: const EdgeInsets.all(4.0),
+										padding: const EdgeInsets.all(12.0),
 										data:
 												"MECARD:N:${mecardName()};TEL:${_phone.replaceAll("-", "")};EMAIL:$_email;ADR:$_location;URL:$_url;NOTE:$_description;;",
 										version: QrVersions.auto,
