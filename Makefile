@@ -8,6 +8,7 @@ preinstall_done:
 	flutter pub global run rename --appname "QRContacts"
 	flutter pub global run rename --bundleId com.magnus.qrcontacts
 	flutter pub run icons_launcher:create
+	echo TODO add permissions
 	touch preinstall_done
 
 linux: all

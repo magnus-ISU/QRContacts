@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 void main() => runApp(const MyApp());
 
@@ -170,6 +175,8 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		saveState();
 	}
 
+	loadPhoneContact(Contact c) async {}
+
 	saveVarFocus(bool isFocusedNow, Function f) {
 		if (!isFocusedNow) {
 			f();
@@ -194,6 +201,35 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 				),
 			);
 		}
+
+// Request contact permission
+		if (Platform.isAndroid || Platform.isIOS) {
+			if (await Permission.contacts.request().isGranted) {
+				if (await FlutterContacts.requestPermission()) {
+					List<Contact> contacts = await FlutterContacts.getContacts(
+							withProperties: true, withPhoto: false);
+
+					if (contacts.isNotEmpty) {
+						list.add(const Padding(padding: EdgeInsets.all(20)));
+						for (Contact c in contacts) {
+							list.add(
+								Padding(
+									padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+									child: ElevatedButton(
+										onPressed: () {
+											print("${c.displayName} ${c.name} ${c.phones[0]}");
+										},
+										child: Text(
+												"${c.displayName} ${c.name} ${c.phones.isNotEmpty ? c.phones[0] : "No phone"}"),
+									),
+								),
+							);
+						}
+					}
+				}
+			}
+		}
+
 		return list;
 	}
 
@@ -239,7 +275,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 									suffixIcon: Icon(Icons.contacts)),
 							onChanged: (value) => {_contactName = value, saveState()},
 						),
-								FutureBuilder(
+						FutureBuilder(
 							builder: (context, snapshot) {
 								return Column(
 									children: snapshot.data ?? <Widget>[],
@@ -247,7 +283,9 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 							},
 							future: getContactList(),
 						),
-						const Padding(padding: EdgeInsets.all(20),),
+						const Padding(
+							padding: EdgeInsets.all(20),
+						),
 						ElevatedButton(
 							style: TextButton.styleFrom(backgroundColor: Colors.red),
 							onPressed: () {
