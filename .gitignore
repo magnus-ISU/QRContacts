@@ -52,6 +52,12 @@ web/
 windows/
 android/
 ios/
+test/
+
+snap/
+
+releases/
+preinstall_done
 
 pubspec.lock
 .metadata
