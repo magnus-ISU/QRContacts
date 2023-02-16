@@ -91,7 +91,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		_url = prefs.getString("url") ?? "";
 
 		// _urlControl.text = _url;
-		updateTexts();
+		updateTexts(write: false);
 	}
 
 	Future<void> saveName() async {
@@ -162,13 +162,21 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		updateTexts();
 	}
 
-	updateTexts() {
+	updateTexts({bool write = true}) {
 		_nameControl.text = _name;
 		_phoneControl.text = _phone;
 		_emailControl.text = _email;
 		_locationControl.text = _location;
 		_descriptionControl.text = _description;
 		_urlControl.text = _url;
+		if (write) {
+			saveName();
+			savePhone();
+			saveEmail();
+			saveLocation();
+			saveDescription();
+			saveUrl();
+		}
 		saveState();
 	}
 
@@ -304,6 +312,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 									labelText: 'Contact Name',
 									isDense: true,
 									suffixIcon: Icon(Icons.contacts)),
+							initialValue: _contactName,
 							onChanged: (value) => {_contactName = value, saveState()},
 						),
 						Padding(
