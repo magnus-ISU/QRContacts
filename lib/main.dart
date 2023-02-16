@@ -150,7 +150,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		saveState();
 	}
 
-	loadOldContact(String name) async {
+	loadCustomContact(String name) async {
 		final SharedPreferences prefs = await _prefs;
 		_name = prefs.getString("contact_${name}_name") ?? "";
 		_phone = prefs.getString("contact_${name}_phone") ?? "";
@@ -202,7 +202,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 			list.add(
 				ElevatedButton(
 					onPressed: () {
-						loadOldContact(name);
+						loadCustomContact(name);
 					},
 					child: Row(
 							children: [Text(name), const Spacer(), const Icon(Icons.edit)]),
@@ -217,7 +217,8 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 					List<Contact> contacts = await FlutterContacts.getContacts(
 							withProperties: true, withPhoto: false);
 
-					contacts = contacts.where((c) => regex.hasMatch(c.displayName)).toList();
+					contacts =
+							contacts.where((c) => regex.hasMatch(c.displayName)).toList();
 
 					List<Contact> starContacts =
 							contacts.where((c) => c.isStarred).toList();
@@ -336,21 +337,22 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 						const Padding(
 							padding: EdgeInsets.all(12),
 						),
-						ElevatedButton(
-							style: TextButton.styleFrom(backgroundColor: Colors.red),
-							onPressed: () {
-								if (_contactName.isEmpty) {
-									ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-										content: Text("Enter a contact name!"),
-									));
-									return;
-								}
-								deleteNewContact(_contactName);
-							},
-							child: Text(_contactName.isEmpty
-									? "Remove a custom contact"
-									: "Remove custom contact $_contactName"),
-						),
+						if (_contactNames.contains(_contactName))
+							ElevatedButton(
+								style: TextButton.styleFrom(backgroundColor: Colors.red),
+								onPressed: () {
+									if (_contactName.isEmpty) {
+										ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+											content: Text("Enter a contact name!"),
+										));
+										return;
+									}
+									deleteNewContact(_contactName);
+								},
+								child: Text(_contactName.isEmpty
+										? "Remove a custom contact"
+										: "Remove custom contact $_contactName"),
+							),
 					],
 				),
 			),
