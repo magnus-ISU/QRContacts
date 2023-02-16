@@ -4,7 +4,7 @@ A flutter reimplementation of [share-my-number](https://github.com/characterdog/
 
 Allows you to create any number of custom contacts.
 
-Will add the feature to automatically allow you to select your existing contacts also to share.
+On Android and ios, also shows your existing contacts and automatically fills their information. You can also search through your contacts.
 
 # Building
 

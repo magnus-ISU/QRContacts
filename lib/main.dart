@@ -193,7 +193,12 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 		final SharedPreferences prefs = await _prefs;
 		_contactNames = prefs.getStringList("contacts") ?? [];
 
+		var regex = RegExp(_contactName, caseSensitive: false);
+
 		for (String name in _contactNames) {
+			if (!regex.hasMatch(name)) {
+				continue;
+			}
 			list.add(
 				ElevatedButton(
 					onPressed: () {
@@ -211,6 +216,8 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 				if (await FlutterContacts.requestPermission(readonly: true)) {
 					List<Contact> contacts = await FlutterContacts.getContacts(
 							withProperties: true, withPhoto: false);
+
+					contacts = contacts.where((c) => regex.hasMatch(c.displayName)).toList();
 
 					List<Contact> starContacts =
 							contacts.where((c) => c.isStarred).toList();
@@ -304,7 +311,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 								saveNewContact(_contactName);
 							},
 							child: Text(_contactName.isEmpty
-									? "Enter a name below to save a custom contact"
+									? "Enter a name to save a custom contact"
 									: "Save $_contactName"),
 						),
 						TextFormField(
@@ -341,7 +348,7 @@ class _QrCodeContactPageState extends State<QrCodeContactPage> {
 								deleteNewContact(_contactName);
 							},
 							child: Text(_contactName.isEmpty
-									? "Enter a name below to remove a custom contact"
+									? "Remove a custom contact"
 									: "Remove custom contact $_contactName"),
 						),
 					],
