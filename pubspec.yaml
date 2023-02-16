@@ -1,4 +1,4 @@
-name: QR_Contacts
+name: qr_contacts
 description: Share your contacts as QR codes
 publish_to: 'none'
 version: 1.0.0
